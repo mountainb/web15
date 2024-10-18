@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Monster AR - Nagasaki University</title>
+  <script src="https://apps.8thwall.com/xrweb.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128/examples/js/loaders/GLTFLoader.js"></script>
+  <style>
+    body, html { margin: 0; padding: 0; overflow: hidden; }
+    canvas { width: 100%; height: 100%; }
+  </style>
+</head>
+<body>
+  <canvas id="ar-canvas"></canvas>
+  <script>
+    window.XR8.addCameraPipelineModules([
+      XR8.GlTextureRenderer.pipelineModule(), // Renders the camera feed.
+      XR8.Threejs.pipelineModule(), // Creates a ThreeJS AR Scene.
+      XR8.XrController.pipelineModule(), // Enables SLAM tracking.
+    ]);
+
+    XR8.addCameraPipelineModule({
+      name: 'custom-ar',
+      onStart: ({canvas, GLctx}) => {
+        const scene = XR8.Threejs.xrScene(); // Get the ThreeJS scene from the pipeline
+        const {renderer, camera} = scene;
+
+        // Load the 3D model
+        const loader = new THREE.GLTFLoader();
+        loader.load('https://www.8thwall.com/nagasaki/monster-ar-nagasaki-university/assets/mm_project.glb', (gltf) => {
+          scene.add(gltf.scene);
+        }, undefined, (error) => {
+          console.error('An error happened while loading the model', error);
+        });
+
+        // Add lighting to the scene
+        const light = new THREE.DirectionalLight(0xffffff, 1);
+        light.position.set(0, 10, 10).normalize();
+        scene.add(light);
+
+        // Start the render loop
+        const animate = () => {
+          renderer.render(scene, camera);
+          requestAnimationFrame(animate);
+        };
+        animate();
+      },
+    });
+
+    XR8.run({canvas: document.getElementById('ar-canvas')});
+  </script>
+</body>
+</html>
